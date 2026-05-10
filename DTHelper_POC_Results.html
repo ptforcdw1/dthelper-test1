@@ -827,6 +827,36 @@
     </div>
   </div>
 
+  <!-- ── Observations & Recommendations ── -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Observations &amp; Recommendations</h2>
+      <p>What worked, what to watch, and how to improve</p>
+    </div>
+    <div class="card-body">
+
+      <h3 style="font-size:.95rem;font-weight:700;color:var(--green);margin-bottom:12px;">Good Practices / What Should Be Continued</h3>
+      <ul class="lessons" style="margin-bottom:24px;">
+        <li><strong>Centralized Environment Configuration</strong> — Environment variables and configurations should be centralized so that all components reference a single source of truth.</li>
+        <li><strong>Template-First Approach</strong> — Enforcing the use of predefined templates before writing custom scripts promotes consistency and reduces errors.</li>
+        <li><strong>Logging on Every Operation</strong> — Ensuring that a log is generated for every task execution improves traceability and auditability.</li>
+        <li><strong>Shared Template Usage</strong> — Requiring the use of a common template before allowing custom implementations helps maintain standardization across the project.</li>
+        <li><strong>Step-by-Step Prompting</strong> — Breaking down prompts into clearly defined, sequential steps produces better results than combining all requirements into a single high-level instruction.</li>
+        <li><strong>Creating /dt-task as a Skill</strong> — It is recommended to register <code>/dt-task</code> as a dedicated skill rather than relying solely on instructions within <code>CLAUDE.md</code>. As noted by Claude, instructions stored only in <code>CLAUDE.md</code> may not always be read consistently; defining them as a skill ensures every step is reliably executed.</li>
+      </ul>
+
+      <h3 style="font-size:.95rem;font-weight:700;color:var(--amber);margin-bottom:12px;">Cautions / Areas of Concern</h3>
+      <ul style="list-style:none;font-size:.87rem;padding:0;">
+        <li style="margin-bottom:8px;padding-left:1.4em;position:relative;"><span style="position:absolute;left:0;color:var(--amber);font-weight:700;">⚠</span><strong>Hardcoding Risk</strong> — Although naming conventions were sourced from a central config, Claude occasionally embedded these patterns directly into generated scripts, effectively hardcoding them. Care should be taken when crafting prompts to explicitly instruct Claude to reference the config dynamically rather than inlining the values.</li>
+        <li style="margin-bottom:8px;padding-left:1.4em;position:relative;"><span style="position:absolute;left:0;color:var(--amber);font-weight:700;">⚠</span><strong>Instruction Drift / Behavioral Consistency</strong> — Claude was explicitly instructed not to trigger pipelines autonomously — only to create them. This was respected initially; however, after being asked to assist with a Jenkins issue mid-project, Claude began requesting to run the pipeline after every subsequent task. Instructions around restricted behaviors need to be reinforced clearly and consistently throughout the session.</li>
+        <li style="margin-bottom:8px;padding-left:1.4em;position:relative;"><span style="position:absolute;left:0;color:var(--amber);font-weight:700;">⚠</span><strong>Log Format Specification</strong> — The current logging instruction only specifies required fields, which Claude fulfills at a field level. However, the intended behavior is for each task to be recorded as a single consolidated log entry. The prompt should be updated to explicitly define this structure.</li>
+        <li style="margin-bottom:8px;padding-left:1.4em;position:relative;"><span style="position:absolute;left:0;color:var(--amber);font-weight:700;">⚠</span><strong>Duplication in Generated Files</strong> — When instructing Claude to generate <code>CLAUDE.md</code>, skill files, and config files simultaneously, some overlapping or redundant content was observed across files. It is unclear whether this will cause confusion during actual operations and should be reviewed before deployment.</li>
+        <li style="margin-bottom:8px;padding-left:1.4em;position:relative;"><span style="position:absolute;left:0;color:var(--amber);font-weight:700;">⚠</span><strong>Skill Recommendation Misalignment</strong> — The original intent was for Claude to create skill files directly during the session. However, Claude only documented the steps in <code>CLAUDE.md</code> without generating the corresponding skill files, as no explicit follow-up instruction was given. At the end of the session, Claude recommended a set of skills to create, but some of these recommendations differed from the skills originally designed — which should be noted as a potential gap.</li>
+      </ul>
+
+    </div>
+  </div>
+
   <!-- ── Backup Divider ── -->
   <div class="backup-divider">
     <h2>Backup Slides</h2>
