@@ -36,6 +36,6 @@ Each entry uses the following structure:
 | **Template Used** | none |
 | **Scripts** | execute.py, test.py |
 | **Jenkins Pipeline** | dthelper-TASK-20260510-001 |
-| **Execution Time** | 2026-05-10 — Pending trigger |
-| **Result** | Pending |
-| **Notes** | Uses Settings API v2, schema builtin:anomaly-detection.metric-events. Mock endpoint (httpbin.org). |
+| **Execution Time** | 2026-05-10 10:39 UTC |
+| **Result** | Success (dry-run validated) |
+| **Notes** | Uses Settings API v2, schema builtin:anomaly-detection.metric-events. Mock endpoint (httpbin.org). Dry-run build #7 passed. Ready for live run with DRY_RUN=false. |
