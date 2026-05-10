@@ -1,0 +1,77 @@
+pipeline {
+    agent any
+
+    parameters {
+        booleanParam(name: 'RUN_TESTS', defaultValue: true,  description: 'Run test.py after execute.py')
+        booleanParam(name: 'DRY_RUN',   defaultValue: false, description: 'Pass --dry-run to execute.py (no changes made)')
+    }
+
+    environment {
+        REPO_URL     = 'https://github.com/ptforcdw1/dthelper-test1.git'
+        BRANCH       = 'master'
+        TASK_DIR     = 'tasks/task_TASK-20260510-002'
+        ALERT_SUMMARY = 'High Host Memory Usage Alert'
+        DT_API_TOKEN = credentials('DT_API_TOKEN')
+    }
+
+    options {
+        timestamps()
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '30'))
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: "${env.REPO_URL}", branch: "${env.BRANCH}"
+            }
+        }
+
+        stage('Validate') {
+            steps {
+                sh 'python3 --version'
+                sh 'pip3 install requests --quiet --break-system-packages'
+                script {
+                    if (!fileExists("${env.TASK_DIR}/execute.py")) {
+                        error("execute.py not found in ${env.TASK_DIR}")
+                    }
+                }
+            }
+        }
+
+        stage('Execute') {
+            steps {
+                script {
+                    def dryRunFlag = params.DRY_RUN ? '--dry-run' : ''
+                    sh """python3 ${env.TASK_DIR}/execute.py \
+                        --summary '${env.ALERT_SUMMARY}' \
+                        --metric-selector 'builtin:host.mem.usage:avg:auto' \
+                        --threshold 85 \
+                        --alert-condition ABOVE \
+                        --duration-minutes 5 \
+                        --event-type PERFORMANCE \
+                        --event-title 'High Memory Usage on Host' \
+                        ${dryRunFlag}"""
+                }
+            }
+        }
+
+        stage('Test') {
+            when {
+                expression { params.RUN_TESTS }
+            }
+            steps {
+                sh "python3 ${env.TASK_DIR}/test.py --summary '${env.ALERT_SUMMARY}'"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Task TASK-20260510-002 completed successfully."
+        }
+        failure {
+            echo "Task TASK-20260510-002 FAILED. Check logs above."
+        }
+    }
+}

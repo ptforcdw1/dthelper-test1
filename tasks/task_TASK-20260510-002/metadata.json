@@ -1,0 +1,17 @@
+{
+  "task_id": "TASK-20260510-002",
+  "description": "Create metric event alert: host memory usage > 85% sustained for 5 minutes (all hosts)",
+  "template_used": "create-metric-alert",
+  "created_date": "2026-05-10",
+  "requester": "user",
+  "scripts": ["execute.py", "test.py"],
+  "api": {
+    "method": "POST",
+    "schema": "builtin:anomaly-detection.metric-events",
+    "metric": "builtin:host.mem.usage:avg:auto",
+    "threshold": 85,
+    "alert_condition": "ABOVE",
+    "duration_minutes": 5,
+    "scope": "environment"
+  }
+}
