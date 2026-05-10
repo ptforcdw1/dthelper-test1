@@ -1,0 +1,16 @@
+{
+  "task_id": "TASK-20260510-001",
+  "description": "Create metric event alert: host CPU usage > 90% sustained for 10 minutes (all hosts)",
+  "template_used": null,
+  "created_date": "2026-05-10",
+  "requester": "user",
+  "scripts": ["execute.py", "test.py"],
+  "api": {
+    "method": "POST",
+    "schema": "builtin:anomaly-detection.metric-events",
+    "metric": "builtin:host.cpu.usage",
+    "threshold": 90,
+    "duration_minutes": 10,
+    "scope": "environment"
+  }
+}
