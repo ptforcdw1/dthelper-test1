@@ -15,7 +15,7 @@
   },
   "github": {
     "repo_url": "https://github.com/ptforcdw1/dthelper-test1.git",
-    "branch": "main",
+    "branch": "master",
     "tasks_dir": "tasks",
     "templates_dir": "templates",
     "pipelines_dir": "jenkins/pipelines"
