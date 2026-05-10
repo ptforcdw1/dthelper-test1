@@ -1,0 +1,29 @@
+{
+  "dynatrace": {
+    "tenant_url": "https://httpbin.org",
+    "api_base_path": "/anything",
+    "api_token_env_var": "DT_API_TOKEN",
+    "entities_api_path": "/anything/api/v2/entities",
+    "settings_api_path": "/anything/api/v2/settings/objects",
+    "config_api_path": "/anything/api/config/v1"
+  },
+  "jenkins": {
+    "url": "http://localhost:8080",
+    "user_env_var": "JENKINS_USER",
+    "token_env_var": "JENKINS_TOKEN",
+    "job_base_path": "/job/dthelper"
+  },
+  "github": {
+    "repo_url": "https://github.com/ptforcdw1/dthelper-test1.git",
+    "branch": "main",
+    "tasks_dir": "tasks",
+    "templates_dir": "templates",
+    "pipelines_dir": "jenkins/pipelines"
+  },
+  "defaults": {
+    "task_id_prefix": "TASK",
+    "task_id_date_format": "%Y%m%d",
+    "script_language": "python",
+    "http_timeout_seconds": 30
+  }
+}

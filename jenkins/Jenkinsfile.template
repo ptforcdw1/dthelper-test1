@@ -1,0 +1,77 @@
+// DTHelper Jenkins Pipeline Template
+// Copy this file to jenkins/pipelines/task_<task_id>/Jenkinsfile and fill in TASK_ID and DESCRIPTION.
+
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'TASK_ID',      defaultValue: 'TASK-YYYYMMDD-NNN', description: 'Task ID to execute')
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run test.py after execute.py')
+        booleanParam(name: 'DRY_RUN',   defaultValue: false, description: 'Pass --dry-run to execute.py (no changes made)')
+    }
+
+    environment {
+        REPO_URL    = 'https://github.com/ptforcdw1/dthelper-test1.git'
+        BRANCH      = 'main'
+        TASK_DIR    = "tasks/task_${params.TASK_ID}"
+        DT_API_TOKEN   = credentials('DT_API_TOKEN')
+        JENKINS_USER   = credentials('JENKINS_USER')
+        JENKINS_TOKEN  = credentials('JENKINS_TOKEN')
+    }
+
+    options {
+        timestamps()
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '30'))
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: "${env.REPO_URL}", branch: "${env.BRANCH}"
+            }
+        }
+
+        stage('Validate') {
+            steps {
+                script {
+                    if (!fileExists("${env.TASK_DIR}/execute.py")) {
+                        error("execute.py not found in ${env.TASK_DIR}")
+                    }
+                }
+                sh 'python --version'
+                sh 'pip install requests --quiet'
+            }
+        }
+
+        stage('Execute') {
+            steps {
+                script {
+                    def dryRunFlag = params.DRY_RUN ? '--dry-run' : ''
+                    sh "python ${env.TASK_DIR}/execute.py ${dryRunFlag}"
+                }
+            }
+        }
+
+        stage('Test') {
+            when {
+                expression { params.RUN_TESTS && fileExists("${env.TASK_DIR}/test.py") }
+            }
+            steps {
+                sh "python ${env.TASK_DIR}/test.py"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Task ${params.TASK_ID} completed successfully."
+        }
+        failure {
+            echo "Task ${params.TASK_ID} FAILED. Check logs above."
+        }
+        always {
+            archiveArtifacts artifacts: "${env.TASK_DIR}/*.json", allowEmptyArchive: true
+        }
+    }
+}
