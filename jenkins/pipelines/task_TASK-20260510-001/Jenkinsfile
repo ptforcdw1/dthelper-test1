@@ -60,10 +60,10 @@ pipeline {
 
     post {
         success {
-            echo "Task ${env.TASK_ID} completed successfully."
+            echo "Task TASK-20260510-001 completed successfully."
         }
         failure {
-            echo "Task ${env.TASK_ID} FAILED. Check logs above."
+            echo "Task TASK-20260510-001 FAILED. Check logs above."
         }
     }
 }
