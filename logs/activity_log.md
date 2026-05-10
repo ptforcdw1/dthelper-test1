@@ -27,6 +27,21 @@ Each entry uses the following structure:
 
 ## Entries
 
+### TASK-20260510-003 — Route k8s namespace test-ns logs to testapp-bucket
+
+| Field | Value |
+|---|---|
+| **Requester** | user |
+| **Description** | Create log storage rule: route logs from k8s namespace 'test-ns' to Grail bucket 'testapp-bucket' |
+| **Template Used** | none |
+| **Scripts** | execute.py, test.py |
+| **Jenkins Pipeline** | dthelper-TASK-20260510-003 |
+| **Execution Time** | 2026-05-10 11:05 UTC |
+| **Result** | Success |
+| **Notes** | Uses Settings API v2, schema builtin:logmonitoring.log-storage-settings. Mock endpoint (httpbin.org). Build #1 passed. |
+
+---
+
 ### TASK-20260510-002 — Create host memory >85% alert for 5 minutes
 
 | Field | Value |
