@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    parameters {
+        booleanParam(name: 'RUN_TESTS', defaultValue: true,  description: 'Run test.py after execute.py')
+        booleanParam(name: 'DRY_RUN',   defaultValue: false, description: 'Pass --dry-run to execute.py (no changes made)')
+    }
+
+    environment {
+        REPO_URL     = 'https://github.com/ptforcdw1/dthelper-test1.git'
+        BRANCH       = 'master'
+        TASK_DIR     = 'tasks/task_TASK-20260510-003'
+        NAMESPACE    = 'test-ns'
+        BUCKET_NAME  = 'testapp-bucket'
+        DT_API_TOKEN = credentials('DT_API_TOKEN')
+    }
+
+    options {
+        timestamps()
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '30'))
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: "${env.REPO_URL}", branch: "${env.BRANCH}"
+            }
+        }
+
+        stage('Validate') {
+            steps {
+                sh 'python3 --version'
+                sh 'pip3 install requests --quiet --break-system-packages'
+                script {
+                    if (!fileExists("${env.TASK_DIR}/execute.py")) {
+                        error("execute.py not found in ${env.TASK_DIR}")
+                    }
+                }
+            }
+        }
+
+        stage('Execute') {
+            steps {
+                script {
+                    def dryRunFlag = params.DRY_RUN ? '--dry-run' : ''
+                    sh """python3 ${env.TASK_DIR}/execute.py \
+                        --namespace '${env.NAMESPACE}' \
+                        --bucket-name '${env.BUCKET_NAME}' \
+                        ${dryRunFlag}"""
+                }
+            }
+        }
+
+        stage('Test') {
+            when {
+                expression { params.RUN_TESTS }
+            }
+            steps {
+                sh "python3 ${env.TASK_DIR}/test.py"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Task TASK-20260510-003 completed successfully."
+        }
+        failure {
+            echo "Task TASK-20260510-003 FAILED. Check logs above."
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "task_id": "TASK-20260510-003",
+  "description": "Create log storage rule: route logs from k8s namespace 'test-ns' to Grail bucket 'testapp-bucket'",
+  "template_used": null,
+  "created_date": "2026-05-10",
+  "requester": "user",
+  "scripts": ["execute.py", "test.py"],
+  "api": {
+    "method": "POST",
+    "schema": "builtin:logmonitoring.log-storage-settings",
+    "namespace": "test-ns",
+    "bucket_name": "testapp-bucket",
+    "matcher_attribute": "k8s.namespace.name",
+    "scope": "environment"
+  }
+}
