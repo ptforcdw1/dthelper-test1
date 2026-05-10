@@ -8,7 +8,7 @@ This file is the registry of all reusable task templates. Update it whenever a n
 
 | Template Name | Directory | Use Case | Approval Required | Created Date |
 |---|---|---|---|---|
-| _(none yet)_ | — | — | — | — |
+| create-metric-alert | `templates/create-metric-alert/` | Create a static-threshold metric event alert for any DT metric (CPU, memory, error rate, etc.) | No | 2026-05-10 |
 
 ---
 
