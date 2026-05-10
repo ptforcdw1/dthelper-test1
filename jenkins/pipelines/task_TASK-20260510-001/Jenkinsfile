@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         REPO_URL   = 'https://github.com/ptforcdw1/dthelper-test1.git'
-        BRANCH     = 'main'
+        BRANCH     = 'master'
         TASK_ID    = 'TASK-20260510-001'
         TASK_DIR   = 'tasks/task_TASK-20260510-001'
         DT_API_TOKEN = credentials('DT_API_TOKEN')
@@ -64,9 +64,6 @@ pipeline {
         }
         failure {
             echo "Task ${env.TASK_ID} FAILED. Check logs above."
-        }
-        always {
-            archiveArtifacts artifacts: "${env.TASK_DIR}/*.json", allowEmptyArchive: true
         }
     }
 }
