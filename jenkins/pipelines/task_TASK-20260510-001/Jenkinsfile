@@ -30,7 +30,7 @@ pipeline {
         stage('Validate') {
             steps {
                 sh 'python3 --version'
-                sh 'pip3 install requests --quiet'
+                sh 'pip3 install requests --quiet --break-system-packages'
                 script {
                     if (!fileExists("${env.TASK_DIR}/execute.py")) {
                         error("execute.py not found in ${env.TASK_DIR}")

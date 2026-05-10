@@ -40,7 +40,7 @@ pipeline {
                     }
                 }
                 sh 'python3 --version'
-                sh 'pip3 install requests --quiet'
+                sh 'pip3 install requests --quiet --break-system-packages'
             }
         }
 
