@@ -27,4 +27,15 @@ Each entry uses the following structure:
 
 ## Entries
 
-_(No entries yet. First task entry will appear here.)_
+### TASK-20260510-001 — Create host CPU >90% alert for 10 minutes
+
+| Field | Value |
+|---|---|
+| **Requester** | user |
+| **Description** | Create Dynatrace metric event alert: host CPU usage > 90% sustained for 10 minutes, applies to all hosts |
+| **Template Used** | none |
+| **Scripts** | execute.py, test.py |
+| **Jenkins Pipeline** | dthelper-TASK-20260510-001 |
+| **Execution Time** | 2026-05-10 — Pending trigger |
+| **Result** | Pending |
+| **Notes** | Uses Settings API v2, schema builtin:anomaly-detection.metric-events. Mock endpoint (httpbin.org). |
