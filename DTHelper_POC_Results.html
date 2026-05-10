@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DTHelper — POC Results Summary</title>
+<style>
+  :root {
+    --blue:      #002887;
+    --teal:      #009CC9;
+    --dark:      #1A1A2E;
+    --light:     #F0F2F5;
+    --mid-grey:  #CCCCCC;
+    --green:     #00A852;
+    --amber:     #FF9900;
+    --code-bg:   #1E1E2E;
+    --code-fg:   #D4D4D4;
+    --code-key:  #569CD6;
+    --code-str:  #CE9178;
+    --code-cmt:  #6A9955;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    background: #EAECEF;
+    color: var(--dark);
+    line-height: 1.55;
+  }
+
+  /* ── Page wrapper ── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  /* ── Section card ── */
+  .card {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.10);
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: var(--blue);
+    color: #fff;
+    padding: 14px 24px 10px;
+  }
+  .card-header h2 { font-size: 1.25rem; font-weight: 700; }
+  .card-header p  { font-size: .85rem; color: var(--teal); margin-top: 2px; }
+  .card-body { padding: 22px 24px; }
+
+  /* ── Title slide ── */
+  .title-card {
+    background: var(--blue);
+    color: #fff;
+    text-align: center;
+    padding: 56px 24px 44px;
+    border-radius: 6px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  .title-card h1  { font-size: 3rem; font-weight: 800; letter-spacing: -1px; }
+  .title-card .sub { color: var(--teal); font-size: 1.4rem; margin-top: 8px; }
+  .title-card .meta { color: var(--mid-grey); font-size: .9rem; margin-top: 18px; }
+
+  /* ── Objectives grid ── */
+  .obj-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .obj-box {
+    background: var(--light);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--mid-grey);
+  }
+  .obj-box .obj-title {
+    background: var(--blue);
+    color: #fff;
+    font-weight: 700;
+    font-size: .9rem;
+    padding: 7px 12px;
+  }
+  .obj-box .obj-body { font-size: .88rem; padding: 10px 12px; color: var(--dark); }
+
+  /* ── Architecture flow ── */
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+  .arch-box {
+    background: var(--blue);
+    color: #fff;
+    border-radius: 4px;
+    text-align: center;
+    padding: 14px 12px;
+    min-width: 130px;
+    flex-shrink: 0;
+  }
+  .arch-box.arch-teal { background: var(--teal); color: #fff; }
+  .arch-box strong { display: block; font-size: .92rem; }
+  .arch-box span   { font-size: .76rem; opacity: .85; }
+  .arch-arrow { font-size: 1.4rem; color: var(--blue); padding: 0 6px; flex-shrink: 0; }
+
+  .arch-note {
+    background: var(--light);
+    border-left: 4px solid var(--teal);
+    padding: 10px 14px;
+    font-size: .87rem;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* ── Directory tree ── */
+  pre.tree {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: .84rem;
+    padding: 20px 24px;
+    border-radius: 4px;
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+  .cmt { color: var(--code-cmt); }
+
+  /* ── Design principles ── */
+  .design-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .design-box {
+    background: var(--light);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--mid-grey);
+  }
+  .design-box .d-title {
+    background: var(--teal);
+    color: #fff;
+    font-weight: 700;
+    font-size: .9rem;
+    padding: 7px 12px;
+  }
+  .design-box .d-body { font-size: .87rem; padding: 10px 12px; }
+
+  /* ── Metrics row ── */
+  .metrics {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .metric-card {
+    flex: 1;
+    min-width: 140px;
+    background: var(--light);
+    border: 1px solid var(--mid-grey);
+    border-radius: 6px;
+    text-align: center;
+    padding: 16px 10px 12px;
+  }
+  .metric-card .val {
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .metric-card .lbl { font-size: .78rem; color: #555; margin-top: 6px; }
+  .green { color: var(--green); }
+  .amber { color: var(--amber); }
+  .blue  { color: var(--blue);  }
+  .teal  { color: var(--teal);  }
+
+  /* ── Results table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .87rem;
+    margin-bottom: 18px;
+  }
+  th {
+    background: var(--blue);
+    color: #fff;
+    text-align: left;
+    padding: 9px 12px;
+    font-weight: 600;
+  }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--mid-grey); }
+  tr:nth-child(even) td { background: var(--light); }
+  .badge-success {
+    background: #D4F5E6;
+    color: var(--green);
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: .8rem;
+  }
+  .tag-manual  { background: #FFF3CD; color: #856404; border-radius: 4px; padding: 1px 7px; font-size: .78rem; }
+  .tag-tpl     { background: #D0EEFF; color: var(--blue); border-radius: 4px; padding: 1px 7px; font-size: .78rem; }
+
+  /* ── Key finding box ── */
+  .finding {
+    background: #D0EEFF;
+    border-left: 4px solid var(--blue);
+    padding: 12px 16px;
+    border-radius: 0 4px 4px 0;
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--blue);
+    margin-bottom: 14px;
+  }
+  .lessons { list-style: none; font-size: .87rem; }
+  .lessons li::before { content: "✓  "; color: var(--green); font-weight: 700; }
+  .lessons li { margin-bottom: 6px; }
+
+  /* ── Backup divider ── */
+  .backup-divider {
+    background: var(--dark);
+    color: #fff;
+    text-align: center;
+    padding: 32px;
+    border-radius: 6px;
+    margin-bottom: 28px;
+  }
+  .backup-divider h2 { font-size: 1.8rem; }
+  .backup-divider p  { color: var(--teal); margin-top: 6px; }
+
+  /* ── Code blocks ── */
+  .code-card { background: var(--dark); border-radius: 6px; margin-bottom: 28px; overflow: hidden; }
+  .code-card .code-header { padding: 12px 20px 8px; }
+  .code-card .code-header h3 { color: #fff; font-size: 1rem; }
+  .code-card .code-header p  { color: var(--teal); font-size: .8rem; margin-top: 2px; }
+  .code-card pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: .82rem;
+    padding: 16px 20px 20px;
+    overflow-x: auto;
+    line-height: 1.65;
+    margin: 0;
+  }
+  .k  { color: var(--code-key); }
+  .s  { color: var(--code-str); }
+  .c  { color: var(--code-cmt); }
+  .f  { color: var(--code-fg);  }
+
+  /* ── Interaction diagram ── */
+  .seq-phase {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: #999;
+    padding: 14px 0 4px;
+    border-top: 1px dashed var(--mid-grey);
+    margin-top: 6px;
+  }
+  .seq-phase:first-child { border-top: none; padding-top: 0; }
+  .seq-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--light);
+  }
+  .seq-step:last-child { border-bottom: none; }
+  .seq-num {
+    font-size: .75rem;
+    font-weight: 700;
+    color: #aaa;
+    min-width: 22px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .actor-badge {
+    border-radius: 4px;
+    padding: 3px 9px;
+    font-size: .75rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    min-width: 82px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .actor-user      { background: #2E7D32; }
+  .actor-claude    { background: var(--blue); }
+  .actor-github    { background: #333; }
+  .actor-jenkins   { background: #C0392B; }
+  .actor-dynatrace { background: var(--teal); }
+  .seq-arrow { color: #bbb; font-size: 1rem; flex-shrink: 0; }
+  .seq-desc { font-size: .85rem; color: var(--dark); flex: 1; }
+  .seq-desc code { background: var(--light); padding: 1px 5px; border-radius: 3px; font-size: .78rem; }
+  .seq-desc em { color: #666; font-style: normal; font-size: .8rem; }
+
+  /* ── Good prompts ── */
+  .prompt-block { margin-bottom: 20px; }
+  .prompt-label {
+    font-size: .73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #888;
+    margin-bottom: 4px;
+  }
+  .prompt-example {
+    background: var(--code-bg);
+    color: #A8D8A8;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: .84rem;
+    padding: 11px 16px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    border-left: 3px solid var(--teal);
+  }
+  .prompt-bad {
+    background: #2A1A1A;
+    color: #F08080;
+    border-left-color: #C0392B;
+  }
+  .prompt-note { font-size: .82rem; color: #555; margin-bottom: 4px; }
+  .tip-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .tip-box {
+    background: var(--light);
+    border-radius: 4px;
+    border-top: 3px solid var(--teal);
+    padding: 11px 13px;
+    font-size: .84rem;
+  }
+  .tip-box strong { display: block; color: var(--blue); margin-bottom: 4px; font-size: .86rem; }
+
+  /* ── Design considerations ── */
+  .consider-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 13px;
+  }
+  .consider-box {
+    background: var(--light);
+    border-radius: 4px;
+    border-top: 3px solid var(--blue);
+    padding: 11px 13px;
+    font-size: .84rem;
+  }
+  .consider-box.warn { border-top-color: var(--amber); }
+  .consider-box .c-title { font-weight: 700; color: var(--blue); font-size: .88rem; margin-bottom: 5px; }
+  .consider-box.warn .c-title { color: #9A6800; }
+  .consider-box ul { list-style: none; padding: 0; }
+  .consider-box ul li::before { content: "· "; color: var(--teal); font-weight: 700; }
+  .consider-box ul li { margin-bottom: 3px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 680px) {
+    .obj-grid, .design-grid, .tip-grid, .consider-grid { grid-template-columns: 1fr; }
+    .arch-flow { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); }
+    .metrics { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Title ── -->
+  <div class="title-card">
+    <h1>DTHelper</h1>
+    <div class="sub">Dynatrace Administrator Helper</div>
+    <div class="meta">AI-Driven Orchestration POC — Results Summary &nbsp;|&nbsp; May 2026 &nbsp;|&nbsp; Claude Sonnet 4.6 + Jenkins + Dynatrace Settings API v2</div>
+  </div>
+
+  <!-- ── Objectives ── -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Objectives</h2>
+      <p>What this POC set out to prove</p>
+    </div>
+    <div class="card-body">
+      <div class="obj-grid">
+        <div class="obj-box">
+          <div class="obj-title">Automate DT Configuration</div>
+          <div class="obj-body">Perform Settings API v2 operations through natural language — no manual Dynatrace UI required.</div>
+        </div>
+        <div class="obj-box">
+          <div class="obj-title">Natural Language Interface</div>
+          <div class="obj-body">Users describe tasks in plain English; Claude handles schema selection, payload construction, and API calls.</div>
+        </div>
+        <div class="obj-box">
+          <div class="obj-title">Full Auditability</div>
+          <div class="obj-body">Every task gets a unique ID (TASK-YYYYMMDD-NNN), committed to Git, and logged in <code>activity_log.md</code>.</div>
+        </div>
+        <div class="obj-box">
+          <div class="obj-title">Jenkins-Driven Execution</div>
+          <div class="obj-body">All API calls run inside Jenkins pipelines — no direct execution from the chat session.</div>
+        </div>
+        <div class="obj-box">
+          <div class="obj-title">Reusable Templates</div>
+          <div class="obj-body">Common operations are extracted into parameterized templates to eliminate repetitive script writing.</div>
+        </div>
+        <div class="obj-box">
+          <div class="obj-title">No DT Expertise Required</div>
+          <div class="obj-body">Operators can complete complex configuration tasks with zero knowledge of Dynatrace schema names or API paths.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Architecture ── -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Architecture</h2>
+      <p>End-to-end flow from user request to Dynatrace change</p>
+    </div>
+    <div class="card-body">
+      <div class="arch-flow">
+        <div class="arch-box">
+          <strong>User</strong>
+          <span>Plain language<br>request</span>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box arch-teal">
+          <strong>Claude (Orchestrator)</strong>
+          <span>Clarify · Plan<br>Generate scripts</span>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+          <strong>GitHub Repository</strong>
+          <span>Version control<br>Task commits</span>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box arch-teal">
+          <strong>Jenkins Pipeline</strong>
+          <span>Execute · Test<br>Audit log</span>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+          <strong>Dynatrace API v2</strong>
+          <span>Create alerts<br>Route logs</span>
+        </div>
+      </div>
+      <div class="arch-note">
+        <strong>Template Registry</strong> — <code>config/template_records.md</code> acts as a lookup table. Claude checks it before generating any script.
+        If a matching template exists, the task scripts are generated from it in seconds instead of from scratch.
+        &nbsp;|&nbsp; <strong>Mock env:</strong> Dynatrace tenant → <code>httpbin.org</code> &nbsp;|&nbsp; Git remote → <code>github.com/ptforcdw1/dthelper-test1</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Interaction Diagram ── -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Tool Interaction Flow</h2>
+      <p>How Claude, GitHub, Jenkins, and the user collaborate on every task</p>
+    </div>
+    <div class="card-body">
+
+      <div class="seq-phase">Phase 1 — Request &amp; Planning</div>
+
+      <div class="seq-step">
+        <div class="seq-num">1</div>
+        <div class="actor-badge actor-user">USER</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-desc">Natural language request — <em>"Create CPU alert when &gt;90% for 10 min on any host"</em></div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">2</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-desc">Reads <code>environment.json</code> · Checks <code>template_records.md</code> · Clarifies missing inputs (if any)</div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">3</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-desc">Generates <code>execute.py</code>, <code>test.py</code>, <code>metadata.json</code> · Assigns task ID <code>TASK-YYYYMMDD-NNN</code></div>
+      </div>
+
+      <div class="seq-phase">Phase 2 — Git &amp; Jenkins Setup</div>
+
+      <div class="seq-step">
+        <div class="seq-num">4</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-github">GITHUB</div>
+        <div class="seq-desc"><code>git commit</code> + <code>git push</code> — task directory committed to <code>master</code> branch</div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">5</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-jenkins">JENKINS</div>
+        <div class="seq-desc">Generates <code>Jenkinsfile</code> · Registers pipeline via REST API <code>POST /createItem</code> (CSRF crumb + Basic auth)</div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">6</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-user">USER</div>
+        <div class="seq-desc">Reports task ID, script summary, and pipeline name · <strong>Waits for user confirmation before triggering</strong></div>
+      </div>
+
+      <div class="seq-phase">Phase 3 — Execution</div>
+
+      <div class="seq-step">
+        <div class="seq-num">7</div>
+        <div class="actor-badge actor-user">USER</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-jenkins">JENKINS</div>
+        <div class="seq-desc">User confirms → build triggered via <code>POST /job/&lt;name&gt;/buildWithParameters</code></div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">8</div>
+        <div class="actor-badge actor-jenkins">JENKINS</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-github">GITHUB</div>
+        <div class="seq-desc"><code>git checkout</code> — Jenkins pulls latest repo from <code>master</code> branch</div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">9</div>
+        <div class="actor-badge actor-jenkins">JENKINS</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-jenkins">JENKINS</div>
+        <div class="seq-desc">Validate stage — <code>python3 --version</code> · <code>pip3 install requests --break-system-packages</code></div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">10</div>
+        <div class="actor-badge actor-jenkins">JENKINS</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-dynatrace">DYNATRACE</div>
+        <div class="seq-desc"><code>execute.py</code> runs — <code>POST /api/v2/settings/objects</code> with constructed payload · DT_API_TOKEN injected from credentials store</div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">11</div>
+        <div class="actor-badge actor-jenkins">JENKINS</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-dynatrace">DYNATRACE</div>
+        <div class="seq-desc"><code>test.py</code> runs — <code>GET /api/v2/settings/objects</code> to verify the rule was created · exits 0 on pass, 1 on fail</div>
+      </div>
+
+      <div class="seq-phase">Phase 4 — Completion</div>
+
+      <div class="seq-step">
+        <div class="seq-num">12</div>
+        <div class="actor-badge actor-jenkins">JENKINS</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-user">USER</div>
+        <div class="seq-desc">Build result visible in Jenkins UI — <strong>SUCCESS</strong> or <strong>FAILURE</strong> with full console log</div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">13</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-desc">Appends structured entry to <code>activity_log.md</code> — task ID, description, template used, result</div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">14</div>
+        <div class="actor-badge actor-claude">CLAUDE</div>
+        <div class="seq-arrow">→</div>
+        <div class="actor-badge actor-user">USER</div>
+        <div class="seq-desc">Confirms completion — task summary, any warnings, next steps</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Directory Structure ── -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Repository Structure</h2>
+      <p>C:\ClaudeCodeDir\DTHelperPOC\</p>
+    </div>
+    <div class="card-body">
+<pre class="tree">DTHelperPOC/
+├── CLAUDE.md                         <span class="cmt">← Orchestrator instructions &amp; workflow rules</span>
+├── config/
+│   ├── environment.json              <span class="cmt">← All URLs, env var names, timeouts</span>
+│   └── template_records.md          <span class="cmt">← Template registry (name, path, use-case)</span>
+├── templates/
+│   ├── create-metric-alert/         <span class="cmt">← Static threshold metric alert template</span>
+│   │   ├── execute.py
+│   │   ├── verify.py
+│   │   └── guideline.md
+│   └── route-logs-to-bucket/        <span class="cmt">← Grail log routing template</span>
+│       ├── execute.py
+│       ├── verify.py
+│       └── guideline.md
+├── tasks/
+│   ├── task_TASK-20260510-001/      <span class="cmt">← CPU &gt;90% alert  (built manually)</span>
+│   │   ├── execute.py
+│   │   ├── test.py
+│   │   └── metadata.json
+│   ├── task_TASK-20260510-002/      <span class="cmt">← Memory &gt;85% alert  (from template)</span>
+│   └── task_TASK-20260510-003/      <span class="cmt">← Route test-ns logs to testapp-bucket</span>
+├── jenkins/
+│   ├── Jenkinsfile.template         <span class="cmt">← Reusable pipeline skeleton</span>
+│   ├── create_pipeline.ps1          <span class="cmt">← Auto-registers job via Jenkins REST API</span>
+│   └── pipelines/
+│       ├── task_TASK-20260510-001/Jenkinsfile
+│       ├── task_TASK-20260510-002/Jenkinsfile
+│       └── task_TASK-20260510-003/Jenkinsfile
+├── logs/
+│   └── activity_log.md              <span class="cmt">← Immutable execution audit log</span>
+└── .claude/
+    └── commands/                    <span class="cmt">← Claude Code custom slash commands</span>
+        ├── task.md                  <span class="cmt">← /task  — enforces 7-step task workflow</span>
+        └── status.md                <span class="cmt">← /status — project state snapshot</span></pre>
+    </div>
+  </div>
+
+  <!-- ── Design Approach ── -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Design Approach</h2>
+      <p>Key architectural decisions and why they were made</p>
+    </div>
+    <div class="card-body">
+      <div class="design-grid">
+        <div class="design-box">
+          <div class="d-title">Orchestrator Pattern</div>
+          <div class="d-body">Claude never calls APIs directly. It generates fully parameterized Python scripts committed to Git, then triggers Jenkins. This keeps a complete audit trail and separates intent from execution.</div>
+        </div>
+        <div class="design-box">
+          <div class="d-title">Template Registry</div>
+          <div class="d-body">Reusable operations (metric alerts, log routing) are extracted into templates with a <code>guideline.md</code>. New tasks use templates whenever possible — cutting implementation from 9 Jenkins builds down to 1.</div>
+        </div>
+        <div class="design-box">
+          <div class="d-title">7-Step Workflow</div>
+          <div class="d-body">Every task follows: Clarify → Check Templates → Generate ID → Commit/Push → Create Pipeline → Trigger Build → Update Log. Steps are deterministic and fully auditable.</div>
+        </div>
+        <div class="design-box">
+          <div class="d-title">Separation of Concerns</div>
+          <div class="d-body"><code>environment.json</code> is the single source of truth for URLs and config. Secrets stay in the Jenkins credentials store, never in code. Scripts are stateless — all inputs via <code>argparse</code>.</div>
+        </div>
+      </div>
+      <br>
+      <div class="arch-note">
+        <strong>Mock-First Development:</strong> All tasks were validated against <code>httpbin.org</code> (an echo endpoint) before any real Dynatrace tenant was configured. Scripts detect mock mode automatically and adjust test pass logic accordingly.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Skills ── -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Claude Code Skills</h2>
+      <p>Custom slash commands that enforce consistent behaviour across every session</p>
+    </div>
+    <div class="card-body">
+
+      <p style="font-size:.88rem;color:#444;margin-bottom:18px;">
+        Skills are project-level prompt files stored in <code>.claude/commands/</code>.
+        When invoked with <code>/skill-name</code>, they inject a structured instruction set into the conversation —
+        ensuring Claude follows the correct workflow every time, even in a fresh session with no prior context.
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;">
+
+        <!-- /task -->
+        <div style="border:1px solid var(--mid-grey);border-radius:6px;overflow:hidden;">
+          <div style="background:var(--blue);padding:12px 16px;">
+            <div style="font-family:'Consolas','Courier New',monospace;font-size:1.15rem;font-weight:700;color:#fff;">/task &lt;request&gt;</div>
+            <div style="font-size:.8rem;color:var(--teal);margin-top:3px;">.claude/commands/task.md</div>
+          </div>
+          <div style="padding:14px 16px;font-size:.85rem;">
+            <p style="margin-bottom:10px;">Orchestrates the full <strong>7-step task workflow</strong> in strict order — no steps can be skipped.</p>
+            <ol style="padding-left:18px;line-height:2;">
+              <li>Clarify requirements &amp; resolve missing inputs</li>
+              <li>Check <code>template_records.md</code> for a matching template</li>
+              <li>Generate the next sequential task ID</li>
+              <li>Write <code>execute.py</code>, <code>test.py</code>, <code>metadata.json</code> → commit &amp; push</li>
+              <li>Generate <code>Jenkinsfile</code> → register pipeline via REST API</li>
+              <li>Report to user — <strong>wait for confirmation</strong> before triggering</li>
+              <li>Append entry to <code>activity_log.md</code></li>
+            </ol>
+          </div>
+          <div style="background:var(--code-bg);padding:10px 16px;">
+            <div style="font-size:.72rem;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Example</div>
+            <div style="font-family:'Consolas','Courier New',monospace;font-size:.82rem;color:#A8D8A8;">/task create alert when error rate exceeds 5% for 3 minutes</div>
+          </div>
+        </div>
+
+        <!-- /status -->
+        <div style="border:1px solid var(--mid-grey);border-radius:6px;overflow:hidden;">
+          <div style="background:var(--teal);padding:12px 16px;">
+            <div style="font-family:'Consolas','Courier New',monospace;font-size:1.15rem;font-weight:700;color:#fff;">/status</div>
+            <div style="font-size:.8rem;color:#fff;opacity:.8;margin-top:3px;">.claude/commands/status.md</div>
+          </div>
+          <div style="padding:14px 16px;font-size:.85rem;">
+            <p style="margin-bottom:10px;">Reads project state and returns an instant <strong>orient-me snapshot</strong> — useful at the start of every session.</p>
+            <ul style="padding-left:18px;line-height:2.1;list-style:disc;">
+              <li>Last 5 task entries from <code>activity_log.md</code> (ID, description, result)</li>
+              <li>All available templates from <code>template_records.md</code> (name, use case, approval)</li>
+              <li>What the next task ID will be for today</li>
+              <li>One-line summary — any failures or pending items flagged</li>
+            </ul>
+          </div>
+          <div style="background:var(--code-bg);padding:10px 16px;">
+            <div style="font-size:.72rem;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Example</div>
+            <div style="font-family:'Consolas','Courier New',monospace;font-size:.82rem;color:#A8D8A8;">/status</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Why skills help table -->
+      <table>
+        <thead>
+          <tr>
+            <th>Without Skills</th>
+            <th>With Skills</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Claude re-reads CLAUDE.md each session and may interpret steps differently</td>
+            <td><code>/task</code> injects the exact 7-step sequence — behaviour is identical every session</td>
+          </tr>
+          <tr>
+            <td>Template check can be skipped if Claude doesn't notice a match</td>
+            <td>Step 2 is mandatory — Claude must explicitly state whether a template was found before proceeding</td>
+          </tr>
+          <tr>
+            <td>Activity log update is easy to forget after a long exchange</td>
+            <td>Step 7 is the last required step in the skill — cannot complete without it</td>
+          </tr>
+          <tr>
+            <td>No easy way for user to see available templates or recent task history</td>
+            <td><code>/status</code> gives a full snapshot in one command, even in a fresh session</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+
+  <!-- ── POC Results ── -->
+  <div class="card">
+    <div class="card-header">
+      <h2>POC Results</h2>
+      <p>3 tasks executed end-to-end — all successful</p>
+    </div>
+    <div class="card-body">
+
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="val green">3</div>
+          <div class="lbl">Tasks Executed</div>
+        </div>
+        <div class="metric-card">
+          <div class="val teal">2</div>
+          <div class="lbl">Templates Created</div>
+        </div>
+        <div class="metric-card">
+          <div class="val green">100%</div>
+          <div class="lbl">Success Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="val amber">9</div>
+          <div class="lbl">Builds to Fix Task 1<br><small>(no template)</small></div>
+        </div>
+        <div class="metric-card">
+          <div class="val green">1</div>
+          <div class="lbl">Build with Template<br><small>(Tasks 2 &amp; 3)</small></div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Task ID</th>
+            <th>Description</th>
+            <th>Template Used</th>
+            <th>Jenkins Build</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>TASK-20260510-001</code></td>
+            <td>Host CPU &gt; 90% sustained for 10 min — create metric alert</td>
+            <td><span class="tag-manual">manual</span></td>
+            <td>Build #9</td>
+            <td><span class="badge-success">Success</span></td>
+          </tr>
+          <tr>
+            <td><code>TASK-20260510-002</code></td>
+            <td>Host Memory &gt; 85% sustained for 5 min — create metric alert</td>
+            <td><span class="tag-tpl">create-metric-alert</span></td>
+            <td>Build #1</td>
+            <td><span class="badge-success">Success</span></td>
+          </tr>
+          <tr>
+            <td><code>TASK-20260510-003</code></td>
+            <td>Route k8s namespace <code>test-ns</code> logs → Grail bucket <code>testapp-bucket</code></td>
+            <td><span class="tag-tpl">route-logs-to-bucket</span></td>
+            <td>Build #1</td>
+            <td><span class="badge-success">Success</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="finding">
+        Key finding: Using a template reduced implementation from 9 Jenkins builds (fix &amp; retry) to 1 clean build — a 9× improvement in delivery speed.
+      </div>
+
+      <ul class="lessons">
+        <li>Template pattern dramatically reduces errors — parameterized scripts eliminate hardcoded values.</li>
+        <li>Mock endpoint (httpbin.org) enables full pipeline testing without a real Dynatrace tenant.</li>
+        <li>Jenkins credential binding keeps secrets out of code and out of Git history.</li>
+        <li>CLAUDE.md as the orchestrator instruction file means consistent behavior across all chat sessions.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── Backup Divider ── -->
+  <div class="backup-divider">
+    <h2>Backup Slides</h2>
+    <p>Generated Script Examples</p>
+  </div>
+
+  <!-- ── B1: CPU Alert execute.py ── -->
+  <div class="code-card">
+    <div class="code-header">
+      <h3>B1 — execute.py: CPU &gt; 90% Alert (TASK-20260510-001)</h3>
+      <p>tasks/task_TASK-20260510-001/execute.py &nbsp;|&nbsp; Schema: builtin:anomaly-detection.metric-events &nbsp;|&nbsp; First task, built manually</p>
+    </div>
+    <pre><span class="c"># tasks/task_TASK-20260510-001/execute.py</span>
+
+<span class="k">def</span> <span class="f">build_payload(args):</span>
+    <span class="f">samples = args.duration_minutes</span>
+    <span class="k">return</span> <span class="f">{</span>
+        <span class="s">"schemaId"</span><span class="f">:</span> <span class="s">"builtin:anomaly-detection.metric-events"</span><span class="f">,</span>
+        <span class="s">"scope"</span><span class="f">:</span> <span class="s">"environment"</span><span class="f">,</span>
+        <span class="s">"value"</span><span class="f">: {</span>
+            <span class="s">"enabled"</span><span class="f">: True,</span>
+            <span class="s">"summary"</span><span class="f">: args.summary,</span>
+            <span class="s">"queryDefinition"</span><span class="f">: {</span>
+                <span class="s">"type"</span><span class="f">:</span> <span class="s">"METRIC_SELECTOR"</span><span class="f">,</span>
+                <span class="s">"metricSelector"</span><span class="f">:</span> <span class="s">"builtin:host.cpu.usage:avg:auto"</span>
+            <span class="f">},</span>
+            <span class="s">"modelProperties"</span><span class="f">: {</span>
+                <span class="s">"type"</span><span class="f">:</span> <span class="s">"STATIC_THRESHOLD"</span><span class="f">,</span>
+                <span class="s">"threshold"</span><span class="f">: args.threshold,</span>           <span class="c"># 90</span>
+                <span class="s">"alertCondition"</span><span class="f">:</span> <span class="s">"ABOVE"</span><span class="f">,</span>
+                <span class="s">"violatingSamples"</span><span class="f">: samples,</span>         <span class="c"># 10  (= 10 minutes)</span>
+                <span class="s">"samples"</span><span class="f">: samples,</span>
+                <span class="s">"dealertingSamples"</span><span class="f">: max(1, samples // 2)</span>
+            <span class="f">},</span>
+            <span class="s">"eventTemplate"</span><span class="f">: {</span>
+                <span class="s">"title"</span><span class="f">:</span> <span class="s">"High CPU Usage on Host"</span><span class="f">,</span>
+                <span class="s">"eventType"</span><span class="f">:</span> <span class="s">"PERFORMANCE"</span><span class="f">,</span>
+                <span class="s">"davisMerge"</span><span class="f">: True</span>
+            <span class="f">},</span>
+            <span class="s">"alertingScope"</span><span class="f">: []</span>                    <span class="c"># all hosts</span>
+        <span class="f">}</span>
+    <span class="f">}</span></pre>
+  </div>
+
+  <!-- ── B2: Jenkinsfile ── -->
+  <div class="code-card">
+    <div class="code-header">
+      <h3>B2 — Jenkinsfile: Task Pipeline (TASK-20260510-001)</h3>
+      <p>jenkins/pipelines/task_TASK-20260510-001/Jenkinsfile &nbsp;|&nbsp; Declarative pipeline — Checkout → Validate → Execute → Test</p>
+    </div>
+    <pre><span class="c">// jenkins/pipelines/task_TASK-20260510-001/Jenkinsfile</span>
+
+<span class="k">pipeline</span> <span class="f">{</span>
+  <span class="k">agent any</span>
+  <span class="k">parameters</span> <span class="f">{ booleanParam(name:</span> <span class="s">'DRY_RUN'</span><span class="f">, defaultValue: false) }</span>
+  <span class="k">environment</span> <span class="f">{</span>
+    <span class="f">DT_API_TOKEN =</span> <span class="k">credentials</span><span class="f">(</span><span class="s">'DT_API_TOKEN'</span><span class="f">)</span>   <span class="c">// Jenkins credentials store</span>
+    <span class="f">TASK_DIR     =</span> <span class="s">'tasks/task_TASK-20260510-001'</span>
+    <span class="f">BRANCH       =</span> <span class="s">'master'</span>
+  <span class="f">}</span>
+  <span class="k">stages</span> <span class="f">{</span>
+    <span class="k">stage</span><span class="f">(</span><span class="s">'Checkout'</span><span class="f">) {</span> <span class="k">steps</span> <span class="f">{</span>
+      <span class="f">git branch: env.BRANCH, url:</span> <span class="s">'https://github.com/ptforcdw1/dthelper-test1.git'</span>
+    <span class="f">} }</span>
+    <span class="k">stage</span><span class="f">(</span><span class="s">'Validate'</span><span class="f">) {</span> <span class="k">steps</span> <span class="f">{</span>
+      <span class="f">sh</span> <span class="s">'python3 --version'</span>
+      <span class="f">sh</span> <span class="s">'pip3 install requests --quiet --break-system-packages'</span>
+    <span class="f">} }</span>
+    <span class="k">stage</span><span class="f">(</span><span class="s">'Execute'</span><span class="f">) {</span> <span class="k">steps</span> <span class="f">{</span>
+      <span class="f">sh</span> <span class="s">"""python3 ${TASK_DIR}/execute.py \
+          --summary 'High CPU Usage Alert' \
+          --metric-selector 'builtin:host.cpu.usage:avg:auto' \
+          --threshold 90 --duration-minutes 10"""</span>
+    <span class="f">} }</span>
+    <span class="k">stage</span><span class="f">(</span><span class="s">'Test'</span><span class="f">) {</span> <span class="k">steps</span> <span class="f">{</span>
+      <span class="f">sh</span> <span class="s">"python3 ${TASK_DIR}/test.py --threshold 90"</span>
+    <span class="f">} }</span>
+  <span class="f">}</span>
+<span class="f">}</span></pre>
+  </div>
+
+  <!-- ── B3: Log Routing ── -->
+  <div class="code-card">
+    <div class="code-header">
+      <h3>B3 — execute.py: Log Routing Rule (TASK-20260510-003)</h3>
+      <p>tasks/task_TASK-20260510-003/execute.py &nbsp;|&nbsp; Schema: builtin:logmonitoring.log-storage-settings &nbsp;|&nbsp; Routes k8s namespace logs to Grail bucket</p>
+    </div>
+    <pre><span class="c"># tasks/task_TASK-20260510-003/execute.py</span>
+
+<span class="k">def</span> <span class="f">build_payload(args):</span>
+    <span class="f">rule_name = args.rule_name</span> <span class="k">or</span> <span class="f">\</span>
+        <span class="f">f</span><span class="s">"Route {args.matcher_attribute}={args.matcher_value} to {args.bucket_name}"</span>
+    <span class="k">return</span> <span class="f">{</span>
+        <span class="s">"schemaId"</span><span class="f">:</span> <span class="s">"builtin:logmonitoring.log-storage-settings"</span><span class="f">,</span>
+        <span class="s">"scope"</span><span class="f">:</span> <span class="s">"environment"</span><span class="f">,</span>
+        <span class="s">"value"</span><span class="f">: {</span>
+            <span class="s">"enabled"</span><span class="f">: True,</span>
+            <span class="s">"config-item-title"</span><span class="f">: rule_name,</span>
+            <span class="s">"matchers"</span><span class="f">: [{</span>
+                <span class="s">"attribute"</span><span class="f">: args.matcher_attribute,</span>  <span class="c"># k8s.namespace.name</span>
+                <span class="s">"operator"</span><span class="f">:  args.matcher_operator,</span>   <span class="c"># EQUALS</span>
+                <span class="s">"values"</span><span class="f">:    [args.matcher_value],</span>     <span class="c"># test-ns</span>
+            <span class="f">}],</span>
+            <span class="s">"bucketName"</span><span class="f">: args.bucket_name,</span>           <span class="c"># testapp-bucket</span>
+        <span class="f">}</span>
+    <span class="f">}</span>
+
+<span class="c"># Called with:</span>
+<span class="c"># python3 execute.py --bucket-name testapp-bucket \</span>
+<span class="c">#   --matcher-attribute k8s.namespace.name --matcher-value test-ns</span></pre>
+  </div>
+
+  <!-- ── B4: Template ── -->
+  <div class="code-card">
+    <div class="code-header">
+      <h3>B4 — Template: create-metric-alert (fully parameterized)</h3>
+      <p>templates/create-metric-alert/execute.py &nbsp;|&nbsp; No hardcoded values — every input via argparse</p>
+    </div>
+    <pre><span class="c"># templates/create-metric-alert/execute.py</span>
+
+<span class="f">parser = argparse.ArgumentParser()</span>
+<span class="f">parser.add_argument(</span><span class="s">'--summary'</span><span class="f">,          required=True,  help=</span><span class="s">'Alert display name'</span><span class="f">)</span>
+<span class="f">parser.add_argument(</span><span class="s">'--metric-selector'</span><span class="f">,  required=True,  help=</span><span class="s">'DT metric selector'</span><span class="f">)</span>
+<span class="f">parser.add_argument(</span><span class="s">'--threshold'</span><span class="f">,        required=True,  type=float)</span>
+<span class="f">parser.add_argument(</span><span class="s">'--alert-condition'</span><span class="f">,  default=</span><span class="s">'ABOVE'</span><span class="f">, choices=[</span><span class="s">'ABOVE'</span><span class="f">,</span><span class="s">'BELOW'</span><span class="f">])</span>
+<span class="f">parser.add_argument(</span><span class="s">'--duration-minutes'</span><span class="f">, default=5,      type=int)</span>
+<span class="f">parser.add_argument(</span><span class="s">'--event-type'</span><span class="f">,       default=</span><span class="s">'PERFORMANCE'</span><span class="f">)</span>
+<span class="f">parser.add_argument(</span><span class="s">'--dry-run'</span><span class="f">,          action=</span><span class="s">'store_true'</span><span class="f">)</span>
+
+<span class="c"># ── Usage examples ──────────────────────────────────────────────────────────</span>
+
+<span class="c"># CPU &gt; 90% for 10 minutes  (TASK-20260510-001, rebuilt manually in 9 builds)</span>
+<span class="c"># python3 execute.py --summary 'High CPU Alert' \</span>
+<span class="c">#   --metric-selector 'builtin:host.cpu.usage:avg:auto' \</span>
+<span class="c">#   --threshold 90 --duration-minutes 10</span>
+
+<span class="c"># Memory &gt; 85% for 5 minutes  (TASK-20260510-002, used template → Build #1 passed)</span>
+<span class="c"># python3 execute.py --summary 'High Memory Alert' \</span>
+<span class="c">#   --metric-selector 'builtin:host.mem.usage:avg:auto' \</span>
+<span class="c">#   --threshold 85 --duration-minutes 5</span>
+
+<span class="c"># Any custom metric — error rate, disk, network, service response time, ...</span>
+<span class="c"># python3 execute.py --summary 'High Error Rate' \</span>
+<span class="c">#   --metric-selector 'builtin:service.errors.total.rate:avg:auto' \</span>
+<span class="c">#   --threshold 5 --alert-condition ABOVE --duration-minutes 3</span></pre>
+  </div>
+
+</div>
+</body>
+</html>
