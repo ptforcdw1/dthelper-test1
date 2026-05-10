@@ -9,6 +9,7 @@ This file is the registry of all reusable task templates. Update it whenever a n
 | Template Name | Directory | Use Case | Approval Required | Created Date |
 |---|---|---|---|---|
 | create-metric-alert | `templates/create-metric-alert/` | Create a static-threshold metric event alert for any DT metric (CPU, memory, error rate, etc.) | No | 2026-05-10 |
+| route-logs-to-bucket | `templates/route-logs-to-bucket/` | Route logs matching any attribute/value (e.g. k8s namespace, pod, deployment) to a Grail bucket | Yes | 2026-05-10 |
 
 ---
 
