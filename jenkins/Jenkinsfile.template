@@ -39,8 +39,8 @@ pipeline {
                         error("execute.py not found in ${env.TASK_DIR}")
                     }
                 }
-                sh 'python --version'
-                sh 'pip install requests --quiet'
+                sh 'python3 --version'
+                sh 'pip3 install requests --quiet'
             }
         }
 

@@ -29,8 +29,8 @@ pipeline {
 
         stage('Validate') {
             steps {
-                sh 'python --version'
-                sh 'pip install requests --quiet'
+                sh 'python3 --version'
+                sh 'pip3 install requests --quiet'
                 script {
                     if (!fileExists("${env.TASK_DIR}/execute.py")) {
                         error("execute.py not found in ${env.TASK_DIR}")
@@ -43,7 +43,7 @@ pipeline {
             steps {
                 script {
                     def dryRunFlag = params.DRY_RUN ? '--dry-run' : ''
-                    sh "python ${env.TASK_DIR}/execute.py --threshold 90 --duration-minutes 10 ${dryRunFlag}"
+                    sh "python3 ${env.TASK_DIR}/execute.py --threshold 90 --duration-minutes 10 ${dryRunFlag}"
                 }
             }
         }
@@ -53,7 +53,7 @@ pipeline {
                 expression { params.RUN_TESTS }
             }
             steps {
-                sh "python ${env.TASK_DIR}/test.py"
+                sh "python3 ${env.TASK_DIR}/test.py"
             }
         }
     }
